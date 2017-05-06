@@ -352,11 +352,14 @@ int dcaca_ord_interv_idx_der(const void *ap, const void *bp) {
 	if (inter_idx_der_a == inter_idx_der_b) {
 		natural idx_izq_a = a->intervalo_idx_ini;
 		natural idx_izq_b = b->intervalo_idx_ini;
-		if (idx_izq_a == idx_izq_b) {
-			result = a->orden - b->orden;
-		} else {
-			result = idx_izq_a - idx_izq_b;
-		}
+		result = a->orden - b->orden;
+		/*
+		 if (idx_izq_a == idx_izq_b) {
+		 result = a->orden - b->orden;
+		 } else {
+		 result = idx_izq_a - idx_izq_b;
+		 }
+		 */
 	} else {
 		result = inter_idx_der_a - inter_idx_der_b;
 	}
