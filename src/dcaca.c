@@ -32,7 +32,7 @@
 #include <stdarg.h>
 #endif
 
-#define CACA_COMUN_TAM_MAX_LINEA 200
+#define CACA_COMUN_TAM_MAX_LINEA (8*30000+30000)
 #define CACA_LOG_MAX_TAM_CADENA 2000
 
 #define CACA_COMUN_BUF_STATICO (char[1000] ) { '\0' }
@@ -52,10 +52,10 @@ typedef enum BOOLEANOS {
 	falso = 0, verdadero
 } bool;
 
+#define CACA_COMUN_TIPO_ASSERT CACA_COMUN_ASSERT_SUAVECITO
 /*
- #define CACA_COMUN_TIPO_ASSERT CACA_COMUN_ASSERT_SUAVECITO
+ #define CACA_COMUN_TIPO_ASSERT CACA_COMUN_ASSERT_DUROTE
  */
-#define CACA_COMUN_TIPO_ASSERT CACA_COMUN_ASSERT_DUROTE
 
 #define assert_timeout_dummy(condition) 0;
 static inline void caca_log_debug_dummy(const char *format, ...) {
@@ -278,17 +278,17 @@ static inline int caca_comun_lee_matrix_long_stdin(tipo_dato *matrix,
 		}
 		for (siguiente_cadena_numero = linea;; siguiente_cadena_numero =
 				cadena_numero_actual) {
-			caca_log_debug("el numero raw %s", linea);
+//			caca_log_debug("el numero raw %s", linea);
 			numero = strtol(siguiente_cadena_numero, &cadena_numero_actual, 10);
 			if (cadena_numero_actual == siguiente_cadena_numero) {
 				break;
 			}
 			*(matrix + indice_filas * num_max_columnas + indice_columnas) =
 					numero;
-			caca_log_debug("en col %d, fil %d, el valor %lu", indice_columnas,
-					indice_filas, numero);
+//			caca_log_debug("en col %d, fil %d, el valor %lu", indice_columnas,
+//					indice_filas, numero);
 			indice_columnas++;
-			caca_log_debug("las columnas son %d", indice_columnas);
+//			caca_log_debug("las columnas son %d", indice_columnas);
 		}
 		if (num_columnas) {
 			num_columnas[indice_filas] = indice_columnas;
@@ -303,7 +303,7 @@ static inline int caca_comun_lee_matrix_long_stdin(tipo_dato *matrix,
 	return 0;
 }
 
-#define DCACA_MAX_NUMERO ((natural)1E6)
+#define DCACA_MAX_NUMERO ((natural)1E7)
 #define DCACA_MAX_CONSULTAS 200000
 #define DCACA_MAX_NUMEROS 30000
 
@@ -417,6 +417,9 @@ static inline mo_mada *dcaca_core(mo_mada *consultas, natural *numeros,
 	for (int i = 0; i < num_consultas; i++) {
 		natural consul_idx_izq = (consultas + i)->intervalo_idx_ini;
 		natural consul_idx_der = (consultas + i)->intervalo_idx_fin;
+
+		caca_log_debug("vamos a bailar %u-%u", consul_idx_izq, consul_idx_der);
+
 		caca_log_debug("disminu izq act %u a izq consul %u", idx_izq_act,
 				consul_idx_izq);
 		while (idx_izq_act > consul_idx_izq) {
@@ -429,14 +432,6 @@ static inline mo_mada *dcaca_core(mo_mada *consultas, natural *numeros,
 					&conteo_uniqs);
 		}
 
-		caca_log_debug("aumen izq act %u a izq consul %u", idx_izq_act,
-				consul_idx_izq);
-		while (idx_izq_act < consul_idx_izq) {
-			dcaca_quitar_mierda(ocurrencias, numeros[idx_izq_act],
-					&conteo_uniqs);
-			idx_izq_act++;
-		}
-
 		caca_log_debug("aumen der act %u a der consul %u", idx_der_act,
 				consul_idx_der);
 		while (idx_der_act < consul_idx_der) {
@@ -445,6 +440,14 @@ static inline mo_mada *dcaca_core(mo_mada *consultas, natural *numeros,
 			idx_der_act++;
 		}
 		dcaca_anadir_mierda(ocurrencias, numeros[idx_der_act], &conteo_uniqs);
+
+		caca_log_debug("aumen izq act %u a izq consul %u", idx_izq_act,
+				consul_idx_izq);
+		while (idx_izq_act < consul_idx_izq) {
+			dcaca_quitar_mierda(ocurrencias, numeros[idx_izq_act],
+					&conteo_uniqs);
+			idx_izq_act++;
+		}
 
 		caca_log_debug("disminu der act %u a der consul %u", idx_der_act,
 				consul_idx_der);
@@ -482,6 +485,9 @@ void dcaca_main() {
 		scanf("%u %u\n", &consul_act->intervalo_idx_ini,
 				&consul_act->intervalo_idx_fin);
 
+		consul_act->intervalo_idx_ini -= 1;
+		consul_act->intervalo_idx_fin -= 1;
+
 		consul_act->idx_query = i;
 		consul_act->orden = i;
 	}
@@ -495,6 +501,6 @@ void dcaca_main() {
 }
 
 int main(void) {
-	puts("he corrido con algo de suerte"); /* prints he corrido con algo de suerte */
+	dcaca_main();
 	return EXIT_SUCCESS;
 }
