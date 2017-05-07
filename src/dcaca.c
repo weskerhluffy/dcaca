@@ -70,6 +70,7 @@ typedef enum BOOLEANOS {
 #define assert_timeout(condition) 0
 #endif
 
+
 #ifdef CACA_COMUN_LOG
 #define caca_log_debug(formato, args...) \
 		do \
