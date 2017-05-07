@@ -345,23 +345,29 @@ int dcaca_ord_interv_idx_der(const void *ap, const void *bp) {
 	mo_mada *b = (mo_mada *) bp;
 	natural inter_idx_der_a = 0;
 	natural inter_idx_der_b = 0;
+	natural idx_bloq_a = 0;
+	natural idx_bloq_b = 0;
+
+	idx_bloq_a = a->intervalo_idx_ini / tam_bloque;
+	idx_bloq_b = b->intervalo_idx_ini / tam_bloque;
 
 	inter_idx_der_a = a->intervalo_idx_fin;
 	inter_idx_der_b = b->intervalo_idx_fin;
 
-	if (inter_idx_der_a == inter_idx_der_b) {
+	if (idx_bloq_a == idx_bloq_b) {
 		natural idx_izq_a = a->intervalo_idx_ini;
 		natural idx_izq_b = b->intervalo_idx_ini;
-		result = a->orden - b->orden;
-		/*
-		 if (idx_izq_a == idx_izq_b) {
-		 result = a->orden - b->orden;
-		 } else {
-		 result = idx_izq_a - idx_izq_b;
-		 }
-		 */
+		if (inter_idx_der_a == inter_idx_der_b) {
+			if (idx_izq_a == idx_izq_b) {
+				result = a->orden - b->orden;
+			} else {
+				result = idx_izq_a - idx_izq_b;
+			}
+		} else {
+			result = inter_idx_der_a - inter_idx_der_b;
+		}
 	} else {
-		result = inter_idx_der_a - inter_idx_der_b;
+		result = a->orden - b->orden;
 	}
 
 	return result;
@@ -413,6 +419,7 @@ static inline mo_mada *dcaca_core(mo_mada *consultas, natural *numeros,
 		(consultas + i)->orden = i;
 	}
 	caca_log_debug("ordendando cons x limite der");
+
 	qsort(consultas, num_consultas, sizeof(mo_mada), dcaca_ord_interv_idx_der);
 
 	idx_izq_act = idx_der_act = (consultas)->intervalo_idx_ini;
@@ -420,6 +427,10 @@ static inline mo_mada *dcaca_core(mo_mada *consultas, natural *numeros,
 	for (int i = 0; i < num_consultas; i++) {
 		natural consul_idx_izq = (consultas + i)->intervalo_idx_ini;
 		natural consul_idx_der = (consultas + i)->intervalo_idx_fin;
+
+		assert_timeout(
+				ceil(abs((int )idx_izq_act - (int )consul_idx_izq))
+						<= tam_bloque * 2);
 
 		caca_log_debug("vamos a bailar %u-%u", consul_idx_izq, consul_idx_der);
 
@@ -499,8 +510,8 @@ void dcaca_main() {
 
 	for (int i = 0; i < num_consultas; i++) {
 		caca_log_debug("consulta %u resul %u", i, (consultas + i)->resulcaca);
+		printf("%u\n", (consultas + i)->resulcaca);
 	}
-
 }
 
 int main(void) {
