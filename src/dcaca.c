@@ -423,6 +423,7 @@ static inline mo_mada *dcaca_core(mo_mada *consultas, natural *numeros,
 	qsort(consultas, num_consultas, sizeof(mo_mada), dcaca_ord_interv_idx_der);
 
 	idx_izq_act = idx_der_act = (consultas)->intervalo_idx_ini;
+	dcaca_anadir_mierda(ocurrencias, numeros[idx_izq_act], &conteo_uniqs);
 
 	for (int i = 0; i < num_consultas; i++) {
 		natural consul_idx_izq = (consultas + i)->intervalo_idx_ini;
@@ -437,11 +438,7 @@ static inline mo_mada *dcaca_core(mo_mada *consultas, natural *numeros,
 		caca_log_debug("disminu izq act %u a izq consul %u", idx_izq_act,
 				consul_idx_izq);
 		while (idx_izq_act > consul_idx_izq) {
-			dcaca_anadir_mierda(ocurrencias, numeros[idx_izq_act],
-					&conteo_uniqs);
 			idx_izq_act--;
-		}
-		if (idx_izq_act != idx_der_act) {
 			dcaca_anadir_mierda(ocurrencias, numeros[idx_izq_act],
 					&conteo_uniqs);
 		}
@@ -449,11 +446,10 @@ static inline mo_mada *dcaca_core(mo_mada *consultas, natural *numeros,
 		caca_log_debug("aumen der act %u a der consul %u", idx_der_act,
 				consul_idx_der);
 		while (idx_der_act < consul_idx_der) {
+			idx_der_act++;
 			dcaca_anadir_mierda(ocurrencias, numeros[idx_der_act],
 					&conteo_uniqs);
-			idx_der_act++;
 		}
-		dcaca_anadir_mierda(ocurrencias, numeros[idx_der_act], &conteo_uniqs);
 
 		caca_log_debug("aumen izq act %u a izq consul %u", idx_izq_act,
 				consul_idx_izq);
