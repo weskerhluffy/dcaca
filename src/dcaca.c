@@ -58,8 +58,7 @@ typedef enum BOOLEANOS {
  */
 
 #define assert_timeout_dummy(condition) 0;
-static inline void caca_log_debug_dummy(const char *format, ...) {
-}
+//static inline void caca_log_debug_dummy(const char *format, ...) { }
 
 #if CACA_COMUN_TIPO_ASSERT == CACA_COMUN_ASSERT_DUROTE
 #define assert_timeout(condition) assert(condition);
@@ -82,7 +81,8 @@ static inline void caca_log_debug_dummy(const char *format, ...) {
 		} \
 		while(0);
 #else
-#define caca_log_debug caca_log_debug_dummy
+#define caca_log_debug(formato, args...) 0;
+//#define caca_log_debug caca_log_debug_dummy
 #endif
 
 #define caca_comun_max(x,y) ((x) < (y) ? (y) : (x))
@@ -319,6 +319,7 @@ natural tam_bloque = 0;
 int ocurrencias[DCACA_MAX_NUMERO ] = { 0 };
 mo_mada consultas[DCACA_MAX_CONSULTAS] = { 0 };
 natural numeros[DCACA_MAX_NUMEROS] = { 0 };
+natural conteo_unicos = 0;
 
 int dcaca_ord_idx_bloque(const void *ap, const void *bp) {
 	int result = 0;
@@ -382,26 +383,24 @@ int dcaca_ord_idx_query(const void *ap, const void *bp) {
 	return result;
 }
 
-static inline void dcaca_anadir_mierda(int *ocurrencias, tipo_dato num,
-		natural *conteo_unicos) {
+static inline void dcaca_anadir_mierda(int *ocurrencias, tipo_dato num) {
 	caca_log_debug("aumentando ocurrencias de %u", num);
 	ocurrencias[num]++;
 	caca_log_debug("quedaron %u", ocurrencias[num]);
 	if (ocurrencias[num] == 1) {
-		(*conteo_unicos)++;
-		caca_log_debug("el conteo de uniqs aumento a %u", *conteo_unicos);
+		conteo_unicos++;
+		caca_log_debug("el conteo de uniqs aumento a %u", conteo_unicos);
 	}
 }
 
-static inline void dcaca_quitar_mierda(int *ocurrencias, tipo_dato num,
-		natural *conteo_unicos) {
+static inline void dcaca_quitar_mierda(int *ocurrencias, tipo_dato num) {
 	caca_log_debug("disminuiendo ocurrencias de %u", num);
 	assert_timeout(ocurrencias[num] > 0);
 	ocurrencias[num]--;
 	caca_log_debug("quedaron %d", ocurrencias[num]);
 	if (!ocurrencias[num]) {
-		(*conteo_unicos)--;
-		caca_log_debug("el conteo de uniqs disminuio a %u", *conteo_unicos);
+		conteo_unicos--;
+		caca_log_debug("el conteo de uniqs disminuio a %u", conteo_unicos);
 	}
 }
 
@@ -409,7 +408,6 @@ static inline mo_mada *dcaca_core(mo_mada *consultas, natural *numeros,
 		natural num_consultas, natural num_numeros) {
 	natural idx_izq_act = 0;
 	natural idx_der_act = 0;
-	natural conteo_uniqs = 0;
 	tam_bloque = ceil(sqrt(num_numeros));
 	caca_log_debug("total de nums %u, tam bloq %u", num_numeros, tam_bloque);
 
@@ -423,7 +421,7 @@ static inline mo_mada *dcaca_core(mo_mada *consultas, natural *numeros,
 	qsort(consultas, num_consultas, sizeof(mo_mada), dcaca_ord_interv_idx_der);
 
 	idx_izq_act = idx_der_act = (consultas)->intervalo_idx_ini;
-	dcaca_anadir_mierda(ocurrencias, numeros[idx_izq_act], &conteo_uniqs);
+	dcaca_anadir_mierda(ocurrencias, numeros[idx_izq_act]);
 
 	for (int i = 0; i < num_consultas; i++) {
 		natural consul_idx_izq = (consultas + i)->intervalo_idx_ini;
@@ -439,36 +437,33 @@ static inline mo_mada *dcaca_core(mo_mada *consultas, natural *numeros,
 				consul_idx_izq);
 		while (idx_izq_act > consul_idx_izq) {
 			idx_izq_act--;
-			dcaca_anadir_mierda(ocurrencias, numeros[idx_izq_act],
-					&conteo_uniqs);
+			dcaca_anadir_mierda(ocurrencias, numeros[idx_izq_act]);
 		}
 
 		caca_log_debug("aumen der act %u a der consul %u", idx_der_act,
 				consul_idx_der);
 		while (idx_der_act < consul_idx_der) {
 			idx_der_act++;
-			dcaca_anadir_mierda(ocurrencias, numeros[idx_der_act],
-					&conteo_uniqs);
+			dcaca_anadir_mierda(ocurrencias, numeros[idx_der_act]);
 		}
 
 		caca_log_debug("aumen izq act %u a izq consul %u", idx_izq_act,
 				consul_idx_izq);
 		while (idx_izq_act < consul_idx_izq) {
-			dcaca_quitar_mierda(ocurrencias, numeros[idx_izq_act],
-					&conteo_uniqs);
+			dcaca_quitar_mierda(ocurrencias, numeros[idx_izq_act]);
 			idx_izq_act++;
 		}
 
 		caca_log_debug("disminu der act %u a der consul %u", idx_der_act,
 				consul_idx_der);
 		while (idx_der_act > consul_idx_der) {
-			dcaca_quitar_mierda(ocurrencias, numeros[idx_der_act],
-					&conteo_uniqs);
+			dcaca_quitar_mierda(ocurrencias, numeros[idx_der_act]);
 			idx_der_act--;
 		}
 
-		caca_log_debug("el conteo uniq de la consul %u es %u", i, conteo_uniqs);
-		(consultas + i)->resulcaca = conteo_uniqs;
+		caca_log_debug("el conteo uniq de la consul %u es %u", i,
+				conteo_unicos);
+		(consultas + i)->resulcaca = conteo_unicos;
 	}
 
 	qsort(consultas, num_consultas, sizeof(mo_mada), dcaca_ord_idx_query);
