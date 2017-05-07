@@ -383,7 +383,7 @@ int dcaca_ord_idx_query(const void *ap, const void *bp) {
 	return result;
 }
 
-#define dcaca_anadir_mierda1(ocurrencias, numero) \
+#define dcaca_anadir_mierda(ocurrencias, numero) \
         __asm__ (\
                         "movl %[num],%%eax\n"\
                         "addl $1,(%[ocurr],%%rax,4)\n"\
@@ -395,16 +395,6 @@ int dcaca_ord_idx_query(const void *ap, const void *bp) {
 : [num] "r" (numero), [ocurr] "r" (ocurrencias)\
             :"rax")
 
-static inline void dcaca_anadir_mierda(int *ocurrencias, tipo_dato num) {
-	caca_log_debug("aumentando ocurrencias de %u", num);
-	ocurrencias[num]++;
-	caca_log_debug("quedaron %u", ocurrencias[num]);
-	if (ocurrencias[num] == 1) {
-		conteo_unicos++;
-		caca_log_debug("el conteo de uniqs aumento a %u", conteo_unicos);
-	}
-}
-
 static inline void dcaca_quitar_mierda(int *ocurrencias, tipo_dato num) {
 	caca_log_debug("disminuiendo ocurrencias de %u", num);
 	assert_timeout(ocurrencias[num] > 0);
@@ -415,6 +405,17 @@ static inline void dcaca_quitar_mierda(int *ocurrencias, tipo_dato num) {
 		caca_log_debug("el conteo de uniqs disminuio a %u", conteo_unicos);
 	}
 }
+
+#define dcaca_quitar_mierda(ocurrencias, numero) \
+        __asm__ (\
+                        "movl %[num],%%eax\n"\
+                        "subl $1,(%[ocurr],%%rax,4)\n"\
+                        "jnz puta%=\n"\
+                        "subl $1,%[conteo_unicos]\n"\
+                        "puta%=:\n" \
+:[conteo_unicos] "=m" (conteo_unicos)\
+: [num] "r" (numero), [ocurr] "r" (ocurrencias)\
+            :"rax")
 
 static inline mo_mada *dcaca_core(mo_mada *consultas, natural *numeros,
 		natural num_consultas, natural num_numeros) {
@@ -435,7 +436,7 @@ static inline mo_mada *dcaca_core(mo_mada *consultas, natural *numeros,
 	idx_izq_act = idx_der_act = (consultas)->intervalo_idx_ini;
 
 	caca_log_debug("anadiendo inicialmente %u", numeros[idx_izq_act]);
-	dcaca_anadir_mierda1(ocurrencias, (numeros[idx_izq_act]));
+	dcaca_anadir_mierda(ocurrencias, (numeros[idx_izq_act]));
 
 	caca_log_debug("el arreglo despues de anadir %s",
 			caca_comun_arreglo_a_cadena_natural((natural *)ocurrencias,num_numeros,CACA_COMUN_BUF_STATICO));
@@ -455,7 +456,7 @@ static inline mo_mada *dcaca_core(mo_mada *consultas, natural *numeros,
 				consul_idx_izq);
 		while (idx_izq_act > consul_idx_izq) {
 			idx_izq_act--;
-			dcaca_anadir_mierda1(ocurrencias, numeros[idx_izq_act]);
+			dcaca_anadir_mierda(ocurrencias, numeros[idx_izq_act]);
 			caca_log_debug("el arreglo despues de anadir %u es %s",
 					numeros[idx_izq_act],
 					caca_comun_arreglo_a_cadena_natural((natural *)ocurrencias,num_numeros,CACA_COMUN_BUF_STATICO));
@@ -466,7 +467,7 @@ static inline mo_mada *dcaca_core(mo_mada *consultas, natural *numeros,
 				consul_idx_der);
 		while (idx_der_act < consul_idx_der) {
 			idx_der_act++;
-			dcaca_anadir_mierda1(ocurrencias, numeros[idx_der_act]);
+			dcaca_anadir_mierda(ocurrencias, numeros[idx_der_act]);
 			caca_log_debug("el arreglo despues de anadir %u es %s",
 					numeros[idx_der_act],
 					caca_comun_arreglo_a_cadena_natural((natural *)ocurrencias,num_numeros,CACA_COMUN_BUF_STATICO));
