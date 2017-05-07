@@ -8,3 +8,7 @@ src/dcaca
 src/shit
 
 src/shit1
+
+*.i
+
+*.s

@@ -70,7 +70,6 @@ typedef enum BOOLEANOS {
 #define assert_timeout(condition) 0
 #endif
 
-
 #ifdef CACA_COMUN_LOG
 #define caca_log_debug(formato, args...) \
 		do \
@@ -384,6 +383,18 @@ int dcaca_ord_idx_query(const void *ap, const void *bp) {
 	return result;
 }
 
+#define dcaca_anadir_mierda1(ocurrencias, numero) \
+        __asm__ (\
+                        "movl %[num],%%eax\n"\
+                        "addl $1,(%[ocurr],%%rax,4)\n"\
+                        "cmpl $1,(%[ocurr],%%rax,4)\n"\
+                        "jne caca%=\n"\
+                        "addl $1,%[conteo_unicos]\n"\
+                        "caca%=:\n" \
+:[conteo_unicos] "=m" (conteo_unicos)\
+: [num] "r" (numero), [ocurr] "r" (ocurrencias)\
+            :"rax")
+
 static inline void dcaca_anadir_mierda(int *ocurrencias, tipo_dato num) {
 	caca_log_debug("aumentando ocurrencias de %u", num);
 	ocurrencias[num]++;
@@ -422,7 +433,13 @@ static inline mo_mada *dcaca_core(mo_mada *consultas, natural *numeros,
 	qsort(consultas, num_consultas, sizeof(mo_mada), dcaca_ord_interv_idx_der);
 
 	idx_izq_act = idx_der_act = (consultas)->intervalo_idx_ini;
-	dcaca_anadir_mierda(ocurrencias, numeros[idx_izq_act]);
+
+	caca_log_debug("anadiendo inicialmente %u", numeros[idx_izq_act]);
+	dcaca_anadir_mierda1(ocurrencias, (numeros[idx_izq_act]));
+
+	caca_log_debug("el arreglo despues de anadir %s",
+			caca_comun_arreglo_a_cadena_natural((natural *)ocurrencias,num_numeros,CACA_COMUN_BUF_STATICO));
+	caca_log_debug("puta mierda %u", conteo_unicos);
 
 	for (int i = 0; i < num_consultas; i++) {
 		natural consul_idx_izq = (consultas + i)->intervalo_idx_ini;
@@ -438,14 +455,22 @@ static inline mo_mada *dcaca_core(mo_mada *consultas, natural *numeros,
 				consul_idx_izq);
 		while (idx_izq_act > consul_idx_izq) {
 			idx_izq_act--;
-			dcaca_anadir_mierda(ocurrencias, numeros[idx_izq_act]);
+			dcaca_anadir_mierda1(ocurrencias, numeros[idx_izq_act]);
+			caca_log_debug("el arreglo despues de anadir %u es %s",
+					numeros[idx_izq_act],
+					caca_comun_arreglo_a_cadena_natural((natural *)ocurrencias,num_numeros,CACA_COMUN_BUF_STATICO));
+			caca_log_debug("puta mierda %u", conteo_unicos);
 		}
 
 		caca_log_debug("aumen der act %u a der consul %u", idx_der_act,
 				consul_idx_der);
 		while (idx_der_act < consul_idx_der) {
 			idx_der_act++;
-			dcaca_anadir_mierda(ocurrencias, numeros[idx_der_act]);
+			dcaca_anadir_mierda1(ocurrencias, numeros[idx_der_act]);
+			caca_log_debug("el arreglo despues de anadir %u es %s",
+					numeros[idx_der_act],
+					caca_comun_arreglo_a_cadena_natural((natural *)ocurrencias,num_numeros,CACA_COMUN_BUF_STATICO));
+			caca_log_debug("puta mierda %u", conteo_unicos);
 		}
 
 		caca_log_debug("aumen izq act %u a izq consul %u", idx_izq_act,
@@ -462,8 +487,7 @@ static inline mo_mada *dcaca_core(mo_mada *consultas, natural *numeros,
 			idx_der_act--;
 		}
 
-		caca_log_debug("el conteo uniq de la consul %u es %u", i,
-				conteo_unicos);
+		caca_log_debug("el conteo uniq de la consul %u es %u", i, conteo_unicos);
 		(consultas + i)->resulcaca = conteo_unicos;
 	}
 
